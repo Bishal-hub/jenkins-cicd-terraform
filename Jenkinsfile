@@ -27,20 +27,20 @@ pipeline {
                     $class: 'AmazonWebServicesCredentialsBinding',
                     credentialsId: 'aws-creds'
                 ]]) {
-                    bat 'terraform init'
+                    sh 'terraform init'
                 }
             }
         }
 
         stage('Terraform Validate') {
             steps {
-                bat 'terraform validate'
+                sh 'terraform validate'
             }
         }
 
         stage('Terraform Format Check') {
             steps {
-                bat 'terraform fmt'
+                sh 'terraform fmt'
             }
         }
 
@@ -50,7 +50,7 @@ pipeline {
                     $class: 'AmazonWebServicesCredentialsBinding',
                     credentialsId: 'aws-creds'
                 ]]) {
-                    bat 'terraform plan -out=tfplan'
+                    sh 'terraform plan -out=tfplan'
                 }
             }
         }
@@ -63,9 +63,9 @@ pipeline {
                 ]]) {
                     script {
                         if (params.ACTION == 'apply') {
-                            bat 'terraform apply -auto-approve tfplan'
+                            sh 'terraform apply -auto-approve tfplan'
                         } else {
-                            bat 'terraform destroy -auto-approve'
+                            sh 'terraform destroy -auto-approve'
                         }
                     }
                 }
