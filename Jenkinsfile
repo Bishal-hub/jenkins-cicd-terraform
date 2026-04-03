@@ -2,87 +2,44 @@ pipeline {
     agent any
 
     parameters {
-        choice(
-            name: 'ACTION',
-            choices: ['apply', 'destroy'],
-            description: 'Choose Terraform action'
-        )
+        choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Choose Action')
     }
 
     environment {
+        AWS_CREDENTIALS = credentials('aws-creds')
         AWS_DEFAULT_REGION = 'ap-south-1'
     }
 
     stages {
-
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Bishal-hub/jenkins-cicd-terraform.git'
+                git branch: 'main', url: 'https://github.com/Bishal-hub/terraform-project.git'
             }
         }
 
         stage('Terraform Init') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-creds'
-                ]]) {
-                    bat 'terraform init'
-                }
+                sh 'terraform init'
             }
         }
 
-        stage('Terraform Validate') {
+        stage('Terraform Execution') {
             steps {
-                bat 'terraform validate'
-            }
-        }
-
-        stage('Terraform Format Check') {
-            steps {
-                bat 'terraform fmt'
-            }
-        }
-
-        stage('Terraform Plan') {
-            steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-creds'
-                ]]) {
-                    bat 'terraform plan -out=tfplan'
-                }
-            }
-        }
-
-        stage('Terraform Apply/Destroy') {
-            steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws-creds'
-                ]]) {
-                    script {
-                        if (params.ACTION == 'apply') {
-                            bat 'terraform apply -auto-approve tfplan'
-                        } else {
-                            bat 'terraform destroy -auto-approve'
-                        }
+                script {
+                    if (params.ACTION == 'apply') {
+                        sh 'terraform apply -auto-approve'
+                    } else {
+                        sh 'terraform destroy -auto-approve'
                     }
                 }
             }
         }
-    }
 
-    post {
-        success {
-            echo "✅ Pipeline executed successfully!"
-        }
-        failure {
-            echo "❌ Pipeline failed!"
-        }
-        always {
-        echo "🧹 Cleaning up workspace..."
-            cleanWs()
+        stage('Show Results') {
+            when { expression { params.ACTION == 'apply' } }
+            steps {
+                sh 'terraform output'
+            }
         }
     }
 }
