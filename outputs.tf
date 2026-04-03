@@ -1,11 +1,9 @@
-output "instance_id" {
-  value = aws_instance.my_ec2.id
-}
-
-output "public_ip" {
-  value = aws_instance.my_ec2.public_ip
-}
-
-output "public_dns" {
-  value = aws_instance.my_ec2.public_dns
+output "deployed_instances" {
+  value = {
+    for k, v in aws_instance.multi_server : k => {
+      instance_id = v.id
+      public_ip   = v.public_ip
+      type        = v.instance_type
+    }
+  }
 }

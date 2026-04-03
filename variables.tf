@@ -1,15 +1,21 @@
 variable "aws_region" {
-  description = "AWS region"
-  default     = "ap-south-1"
+  default = "ap-south-1"
 }
 
-variable "instance_type" {
-  description = "EC2 instance type"
-  default     = "t3.micro"
+variable "server_groups" {
+  description = "Configuration for different server groups"
+  type = map(object({
+    instance_type  = string
+    instance_count = number
+  }))
+  default = {
+    "web" = {
+      instance_type  = "t3.micro"
+      instance_count = 2
+    },
+    "app" = {
+      instance_type  = "t3.small"
+      instance_count = 1
+    }
+  }
 }
-
-variable "ami_id" {
-  description = "AMI ID for EC2"
-  default     = "ami-0f5ee92e2d63afc18" # Amazon Linux (Mumbai region)
-}
-
